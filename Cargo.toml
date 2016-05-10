@@ -1,0 +1,13 @@
+[package]
+name = "the_quizz"
+version = "0.1.0"
+authors = ["Ferry Jérémie <ferryjeremie@free.fr>"]
+
+[dependencies]
+rustbox = "*"
+postgres = "*"
+gettext = "*"
+
+[[bin]]
+name = "the_quizz"
+path = "src/main.rs"
