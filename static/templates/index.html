@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-framework="riotjs">
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <link href="./static/bootstrap.min.css" rel="stylesheet" type="text/css">
+        <link href="./static/sb-admin-2.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+        <apphead>{{ title }}</apphead>
+        <appli>
+            <questions></questions>
+            <validation>
+                <vbutton>{{ no }}</vbutton>
+                <vbutton>{{ yes }}</vbutton>
+            </validation>
+            <response type="bad">{{ unchecked }}</response>
+            <response type="good">{{ checked }}</response>
+        </appli>
+    </body>
+    <script src="https://code.jquery.com/jquery-3.0.0.min.js"
+        integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="
+        crossorigin="anonymous">
+    </script>
+    <script type="text/javascript" src="./static/riot.min.js"></script>
+    <script type="text/javascript" src="./static/tags.js"></script>
+    <script type="text/javascript">riot.mount('*')</script>
+</html>

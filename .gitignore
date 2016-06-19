@@ -1,0 +1,18 @@
+# cargo / rust
+target
+
+# python
+__pycache__
+
+# npm
+static/node_modules
+npm-debug.log
+
+# build
+static/contributors.json
+static/dist
+static/*.bundle.js
+static/scripts/_
+
+*~
+static/output
