@@ -1,0 +1,13 @@
+nav ul a,
+nav .brand-logo {
+  color: #26a69a;
+}
+.hidden {
+    visibility: hidden;
+}
+#result {
+    font-size: 1.8rem;
+}
+#result span {
+    position: absolute;
+}

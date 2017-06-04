@@ -1,16 +1,52 @@
+#[macro_use] extern crate serde_derive;
+extern crate rocket;
+extern crate rocket_contrib;
+#[macro_use] extern crate diesel;
+#[macro_use] extern crate diesel_codegen;
+#[macro_use] extern crate log;
+
+extern crate serde;
+extern crate dotenv;
 extern crate gettext;
-extern crate postgres;
+extern crate walkdir;
+
+pub use self::walkdir::WalkDir;
+pub use self::gettext::{Catalog, Error};
+
+pub use rocket_contrib::MsgPack;
+pub use serde::Serialize;
+
+pub mod schema;
+pub mod models;
 
 use std::fs::File;
+use diesel::prelude::*;
+use diesel::*;
+use diesel::pg::PgConnection;
+use dotenv::dotenv;
+use std::env;
 
-pub use self::gettext::Catalog;
+use self::models::{Question};
+use self::schema::questions::dsl::*;
 
-pub use self::postgres::{Connection, SslMode};
+pub fn establish_connection() -> PgConnection {
+    dotenv().ok();
+    let database_url = env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set");
+    PgConnection::establish(&database_url)
+        .expect(&format!("Error connecting to {}", database_url))
+}
 
-pub struct Question {
-    pub id: i32,
-    pub entitled: String,
-    pub response: bool
+#[derive(Debug)]
+pub struct TextualContent {
+    pub title: String,
+    pub quit: String,
+    pub  yes: String,
+    pub no: String,
+    pub yes_key: String,
+    pub no_key: String,
+    pub checked: String,
+    pub unchecked: String
 }
 
 pub struct ValidateStruct {
@@ -18,7 +54,8 @@ pub struct ValidateStruct {
     pub y: usize,
     pub selected_value: bool,
     pub entitled: String,
-    pub response: bool
+    pub response: bool,
+    pub content: TextualContent
 }
 
 pub trait QuizzDataBase {
@@ -27,67 +64,97 @@ pub trait QuizzDataBase {
     fn get_response(&mut self, question: Question) -> bool;
 }
 
-#[derive(Debug)]
 pub struct QuizzDataBaseStruct {
-    pub connection: postgres::Connection
+    pub connection: PgConnection
 }
 
 impl QuizzDataBase for QuizzDataBaseStruct {
     fn new() -> QuizzDataBaseStruct {
-        let connection = Connection::connect("postgresql://postgres@localhost", SslMode::None).unwrap();
         QuizzDataBaseStruct {
-            connection: connection
+            connection:  establish_connection()
         }
     }
 
     /// get a random question
     fn get_question(&mut self) -> Question {
-        let mut question = Question { id: 0, entitled: String::from(""), response: false };
-        for row in &self.connection.query("SELECT id, entitled, response FROM questions ORDER BY random() LIMIT 1", &[]).unwrap() {
-            question = Question {
-                id: row.get(0),
-                entitled: row.get(1),
-                response: row.get(2)
-            };
-        }
-        question
+        no_arg_sql_function!(random, types::VarChar);
+        let query_fragment = questions.limit(1).order(random);
+        info!("{:?}", &debug_sql!(query_fragment));
+        let b = query_fragment.first(&self.connection).unwrap();
+        b
     }
 
     /// give response of a question
     fn get_response(&mut self, question: Question) -> bool {
-        let mut response = false;
-        for row in &self.connection.query("SELECT response FROM questions WHERE id=$1 LIMIT 1", &[&question.id]).unwrap() {
-            response = row.get(0)
-        }
-        response
+        let r = questions.filter(id.eq(question.id)).limit(1).load::<Question>(&self.connection).unwrap();
+        info!("{:?}", r[0].response);
+        r[0].response
     }
 }
 
-#[derive(Debug)]
-pub enum TextualContent {
-    Title,
-    Quit,
-    Yes,
-    No,
-    YesKey,
-    NoKey,
-    Checked,
-    UnChecked
+fn trans(catalog: &Option<Result<Catalog, Error>>, content: &'static str) -> String {
+    return match *catalog {
+        Some(ref catalog) => {
+            match *catalog {
+                Ok(ref c) => {
+                    c.gettext(&*content).to_string()
+                }
+                _ => {
+                    String::from(content)
+                }
+            }
+        }
+        _ => {
+            String::from(content)
+        }
+    };
 }
 
-impl TextualContent {
-   pub fn str(&self) -> String {
-        let f = File::open("locale/fr/LC_MESSAGES/messages.mo").expect("could not open the catalog");
-        let catalog = Catalog::parse(f).expect("could not parse the catalog");
-        match *self {
-            TextualContent::Title => catalog.gettext("The QuiiiZz !").to_string(),
-            TextualContent::Quit => catalog.gettext("Press 'q' to quit.").to_string(),
-            TextualContent::Yes => catalog.gettext("Yes").to_string(),
-            TextualContent::No => catalog.gettext("No").to_string(),
-            TextualContent::YesKey => catalog.gettext("y").to_string(),
-            TextualContent::NoKey => catalog.gettext("n").to_string(),
-            TextualContent::Checked => "✔".to_string(),
-            TextualContent::UnChecked => "✘".to_string()
+pub fn textual_content(force_lang: Option<String>) -> TextualContent {
+    let lang = match force_lang {
+        Some(l) => {
+            l
         }
-   }
+        None => {
+            env::var("LANGUAGE").unwrap()
+        }
+    };
+    let path = &*format!(
+        "locale/{}/LC_MESSAGES/messages.mo",
+        lang
+    );
+    let catalog = match File::open(&path) {
+        Ok(f) => {
+            Some(Catalog::parse(f))
+        }
+        _ => {
+            None
+        }
+    };
+
+    TextualContent {
+        title: trans(&catalog, "The QuiiiZz !"),
+        quit:  trans(&catalog, "Press 'q' to quit."),
+        yes: trans(&catalog, "Yes"),
+        no: trans(&catalog, "No"),
+        yes_key: trans(&catalog, "y"),
+        no_key: trans(&catalog, "n"),
+        checked: trans(&catalog, "✔"),
+        unchecked: trans(&catalog, "✘")
+    }
+}
+
+pub fn langs() -> Vec<String> {
+    let mut langs: Vec<String> = Vec::new();
+    for entry in WalkDir::new("locale") {
+        match entry {
+            Ok(e) => {
+                println!("{}", e.path().display());
+            }
+            _ => {
+                println!("rrrr");
+            }
+        };
+    };
+    return langs;
 }

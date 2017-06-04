@@ -1,12 +1,16 @@
-extern crate rustbox;
+extern crate the_quizz;
+#[macro_use] extern crate diesel;
 
-use std::default::Default;
+#[macro_use] extern crate log;
+extern crate slog_envlogger;
+
+extern crate rustbox;
+extern crate rustc_serialize;
 
 use rustbox::{Color, RustBox};
 use rustbox::Key;
 
-use lib::{QuizzDataBase, QuizzDataBaseStruct, ValidateStruct, TextualContent};
-mod lib;
+use the_quizz::*;
 
 trait ValidateBox {
     fn new() -> ValidateStruct;
@@ -18,17 +22,20 @@ impl ValidateBox for ValidateStruct {
     fn new() -> ValidateStruct {
         let mut data_base = QuizzDataBaseStruct::new();
         let question = data_base.get_question();
+        println!("{:?}", question);
 
         ValidateStruct {
             selected_value: false,
             x: 15, y: 5,
-            entitled: question.entitled, response: question.response
+            entitled: question.entitled,
+            response: question.response,
+            content: textual_content(None)
         }
     }
 
     fn print(&mut self, rustbox: &RustBox, key: &Key) {
-        let yes_key_press = TextualContent::YesKey.str().chars().next().unwrap();
-        let no_key_press = TextualContent::NoKey.str().chars().next().unwrap();
+        let yes_key_press = self.content.yes_key.chars().next().unwrap();
+        let no_key_press = self.content.no_key.chars().next().unwrap();
 
         if *key == Key::Left && self.selected_value == true {
             self.selected_value = false;
@@ -57,71 +64,71 @@ impl ValidateBox for ValidateStruct {
                           rustbox::RB_BOLD,
                           Color::White,
                           Color::Black,
-                          &format!("[ {} ]", TextualContent::No.str()));
-            rustbox.print(self.x + TextualContent::No.str().len() + 6,
+                          &format!("[ {} ]", self.content.no));
+            rustbox.print(self.x + self.content.no.len() + 6,
                           self.y,
                           rustbox::RB_BOLD,
                           Color::Black,
                           Color::White,
-                          &format!("[ {} ]", TextualContent::Yes.str()));
+                          &format!("[ {} ]", self.content.yes));
         } else {
             rustbox.print(self.x,
                           self.y,
                           rustbox::RB_BOLD,
                           Color::Black,
                           Color::White,
-                          &format!("[ {} ]", TextualContent::No.str()));
-            rustbox.print(self.x + TextualContent::No.str().len() + 6,
+                          &format!("[ {} ]", self.content.no));
+            rustbox.print(self.x + self.content.no.len() + 6,
                           self.y,
                           rustbox::RB_BOLD,
                           Color::White,
                           Color::Black,
-                          &format!("[ {} ]", TextualContent::Yes.str()));
+                          &format!("[ {} ]", self.content.yes));
         }
     }
 
     fn display_result(&mut self, rustbox: &RustBox) {
         if self.selected_value == self.response {
-            rustbox.print(self.x + TextualContent::No.str().len() + 6 + TextualContent::Yes.str().len() + 6,
+            rustbox.print(self.x + self.content.no.len() + 6 + self.content.yes.len() + 6,
                   self.y,
                   rustbox::RB_BOLD,
                   Color::Green,
                   Color::Black,
-                  &*TextualContent::Checked.str());
+                  &*self.content.checked);
         }
         else {
-            rustbox.print(self.x + TextualContent::No.str().len() + 6 + TextualContent::Yes.str().len() + 6,
+            rustbox.print(self.x + self.content.no.len() + 6 + self.content.yes.len() + 6,
                   self.y,
                   rustbox::RB_BOLD,
                   Color::Red,
                   Color::Black,
-                  &*TextualContent::UnChecked.str());
+                  &*self.content.unchecked);
         }
     }
 }
 
+
 fn main() {
+    slog_envlogger::init().unwrap();
     let rustbox = match RustBox::init(Default::default()) {
         Result::Ok(v) => v,
         Result::Err(e) => panic!("{}", e),
     };
+    let mut validate_box = ValidateStruct::new();
 
     rustbox.print(1,
                   1,
                   rustbox::RB_BOLD,
                   Color::White,
                   Color::Black,
-                  &*TextualContent::Title.str());
+                  &*validate_box.content.title);
     rustbox.print(80,
                   1,
                   rustbox::RB_BOLD,
                   Color::White,
                   Color::Cyan,
-                  &*TextualContent::Quit.str());
-
-    let mut validate_box = ValidateStruct::new();
+                  &*validate_box.content.quit);
     validate_box.print(&rustbox, &Key::Unknown(0));
-
     loop {
         rustbox.present();
         match rustbox.poll_event(false) {
@@ -139,4 +146,5 @@ fn main() {
             _ => {}
         }
     }
+
 }

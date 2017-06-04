@@ -1,33 +1,29 @@
 [package]
 name = "the_quizz"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["Ferry Jérémie <ferryjeremie@free.fr>"]
 
 [dependencies]
-rustbox = "0.8.1"
-postgres = "0.11.10"
-gettext = "0.2.0"
-iron = "0.4.0"
-hyper = "0.9.7"
-mount = "0.2.1"
-staticfile = "0.3.0"
-router = "0.2.0"
-rustc-serialize = "0.3.19"
-tera = "0.1.2"
-persistent = "0.0.6"
+rustbox         = "0.9"
+gettext         = "0.2.0"
+rustc-serialize = "0.3"
+walkdir = "1.0"
+diesel = { version = "0.11.0", features = ["postgres"] }
+diesel_codegen = { version = "0.11.0", features = ["postgres"] }
+dotenv = "0.8.0"
+log = "0.3.6"
+slog-envlogger = "2.0.0"
+rocket          = { git = "https://github.com/SergioBenitez/Rocket.git", rev = "a4292ba" }
+rocket_codegen = { git = "https://github.com/SergioBenitez/Rocket.git", rev = "a4292ba" }
+# Serialization and templating dependencies.
+serde = "1.0"
+serde_json = "1.0"
+serde_derive = "1.0"
+rmp-serde = { version = "^0.13", optional = true }
+tera = "0.3"
 
-[[bin]]
-name = "the_quizz"
-path = "src/main.rs"
-
-[[bin]]
-name = "compile_templates"
-path = "src/compile_templates.rs"
-
-[[bin]]
-name = "the_quizz_web"
-path = "src/web.rs"
-
-[[bin]]
-name = "essai"
-path = "src/essai.rs"
+[dependencies.rocket_contrib]
+git = "https://github.com/SergioBenitez/Rocket.git"
+rev = "a4292ba"
+default-features = false
+features = ["msgpack", "json"]

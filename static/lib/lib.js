@@ -13,10 +13,10 @@ module.exports = {
 */
 module.exports = {
     css: [
-        'startbootstrap-sb-admin-2/bower_components/bootstrap/dist/css/bootstrap.min.css',
-        'startbootstrap-sb-admin-2/dist/css/sb-admin-2.css'
+        '../node_modules/materialize-css/dist/css/materialize.min.css',
     ],
     js: [
-        'startbootstrap-sb-admin-2/dist/js/sb-admin-2.js',
+        //'../node_modules/msgpack-lite/dist/msgpack.min.js',
+        '../node_modules/axios/dist/axios.js'
     ]
 };

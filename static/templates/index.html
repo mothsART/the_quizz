@@ -1,27 +1,41 @@
 <!doctype html>
-<html lang="en" data-framework="riotjs">
+<html lang="en">
     <head>
+        <title>{{ title }}</title>
+        <link rel="shortcut icon" href="./static/img/favicon.ico">
+        <link rel="icon" type="image/x-icon" href="./static/img/favicon.ico">
+        <link rel="icon" type="image/png" href="./static/img/favicon.png" />
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-        <link href="./static/bootstrap.min.css" rel="stylesheet" type="text/css">
-        <link href="./static/sb-admin-2.css" rel="stylesheet" type="text/css">
+        <link href="./static/output/style.css" rel="stylesheet" type="text/css" media="screen,projection">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/msgpack-lite/0.1.26/msgpack.min.js"></script>
     </head>
     <body>
-        <apphead>{{ title }}</apphead>
-        <appli>
-            <questions></questions>
-            <validation>
-                <vbutton>{{ no }}</vbutton>
-                <vbutton>{{ yes }}</vbutton>
-            </validation>
-            <response type="bad">{{ unchecked }}</response>
-            <response type="good">{{ checked }}</response>
-        </appli>
+        <nav class="white" role="navigation">
+            <div class="nav-wrapper container">
+              <a id="logo-container" href="#" class="brand-logo">{{ title }}</a>
+            </div>
+        </nav>
+        <div class="container">
+        <div class="section">
+          <div class="row">
+            <div class="col s12 center">
+                <div id="questions">
+                    <h2 data-indice="{ indice }">{ question }</h2>
+                </div>
+                <span id="buttons">
+                    <input type="button" v-on:click="reply(false)" class="btn" value="{{ no }}" />
+                    <input type="button" v-on:click="reply(true)" class="btn" value="{{ yes }}" />
+                </span>
+                <span id="result">
+                    <span :class="cssColorUnchecked">{{ unchecked }}</span>
+                    <span :class="cssColorChecked">{{ checked }}</span>
+                </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    <script type="text/javascript" src="./static/output/lib.js"></script>
+    <script type="text/javascript" src="./static/output/vue.min.js"></script>
+    <script type="text/javascript" src="./static/output/script.js"></script>
     </body>
-    <script src="https://code.jquery.com/jquery-3.0.0.min.js"
-        integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="
-        crossorigin="anonymous">
-    </script>
-    <script type="text/javascript" src="./static/riot.min.js"></script>
-    <script type="text/javascript" src="./static/tags.js"></script>
-    <script type="text/javascript">riot.mount('*')</script>
 </html>

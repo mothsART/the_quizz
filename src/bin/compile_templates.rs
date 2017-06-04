@@ -1,4 +1,6 @@
+extern crate the_quizz;
 extern crate tera;
+extern crate rustc_serialize;
 
 use std::io::prelude::*;
 use std::fs::File;
@@ -6,20 +8,21 @@ use std::fs::File;
 use tera::Tera;
 use tera::Context;
 
-use lib::TextualContent;
 
-#[allow(dead_code)]
-mod lib;
+use the_quizz::*;
 
 fn main() {
     let tera = Tera::new("static/templates/**/*.html");
 
+    let content = textual_content(Some(String::from("en_US")));
+    let langs = langs();
+
     let mut context = Context::new();
-    context.add("title", &TextualContent::Title.str());
-    context.add("yes", &TextualContent::Yes.str());
-    context.add("no", &TextualContent::No.str());
-    context.add("unchecked", &TextualContent::UnChecked.str());
-    context.add("checked", &TextualContent::Checked.str());
+    context.add("title", &content.title);
+    context.add("yes", &content.yes);
+    context.add("no", &content.no);
+    context.add("unchecked", &content.unchecked);
+    context.add("checked", &content.checked);
 
     let rendered = tera.render("index.html", context).unwrap();
     let mut file = File::create("static/output/index.html").unwrap();
